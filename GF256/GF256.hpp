@@ -11,7 +11,6 @@ namespace GF256
 class Element
 {
   unsigned char m_additive_rep = 0;
-  unsigned char m_mult_rep = add_to_mult_rep[0];
 
 public:
   constexpr Element () {}
@@ -35,10 +34,12 @@ public:
 
   constexpr Element pow (int power) const
   {
-    if (m_mult_rep == 255)
+    if (m_additive_rep == 0)
       return Element ();
 
-    int result_power = (m_mult_rep * power) % 255;
+    unsigned char mult_rep = add_to_mult_rep[m_additive_rep];
+
+    int result_power = (mult_rep * power) % 255;
 
     if (result_power < 0)
       result_power = 255 - result_power;
@@ -48,13 +49,10 @@ public:
 
   constexpr Element inv () const
   {
-    if (m_mult_rep == 255)
+    if (m_additive_rep == 0)
       std::terminate (); // zero element has no inverse;
 
-    if (m_mult_rep == 0)
-      return *this;
-
-    return Element::from_mult_rep (255 - m_mult_rep);
+    return Element::from_mult_rep (255 - add_to_mult_rep[m_additive_rep]);
   }
 
   constexpr Element &operator *= (const Element &rhs)
@@ -82,19 +80,13 @@ public:
   }
 
   constexpr explicit Element (unsigned char additive_rep)
-    : m_additive_rep (additive_rep),
-      m_mult_rep (add_to_mult_rep[additive_rep]) {}
+    : m_additive_rep (additive_rep) {}
 
 private:
 
-  constexpr Element (unsigned char additive_rep, unsigned char mult_rep)
-    : m_additive_rep (additive_rep),
-      m_mult_rep (mult_rep) {}
-
-  static constexpr Element from_mult_rep (unsigned char mult_rep)
+  static constexpr Element from_mult_rep (int mult_rep)
   {
     Element el;
-    el.m_mult_rep = mult_rep;
     el.m_additive_rep = mult_to_add_rep[mult_rep];
     return el;
   }
@@ -112,9 +104,10 @@ private:
   friend constexpr bool operator <= (const Element &, const Element &);
   friend constexpr bool operator >= (const Element &, const Element &);
   friend constexpr Element operator * (const Element &, const Element &);
-  friend constexpr Element operator + (const Element &, const Element &);
+  friend constexpr Element operator + (Element, Element);
   friend constexpr Element operator / (const Element &, const Element &);
   friend constexpr Element operator - (const Element &, const Element &);
+  friend void GF256::run_benchmark_suit ();
 };
 
 inline constexpr Element primitive_root ()       {return Element (static_cast<unsigned char> (2));}
@@ -153,31 +146,33 @@ inline constexpr bool operator >= (const Element &lhs, const Element &rhs)
 
 inline constexpr Element operator* (const Element &lhs, const Element &rhs)
 {
-  if (lhs.m_mult_rep == 255 || rhs.m_mult_rep == 255)
+  if (lhs.m_additive_rep == 0 || rhs.m_additive_rep == 0)
     return Element ();
 
-  int sum_of_powers = lhs.m_mult_rep + rhs.m_mult_rep;
+  unsigned char left_mult_rep = add_to_mult_rep[lhs.m_additive_rep];
+  unsigned char right_mult_rep = add_to_mult_rep[rhs.m_additive_rep];
 
-  if (sum_of_powers < 255)
-    return Element::from_mult_rep (sum_of_powers);
-
-  return Element::from_mult_rep (sum_of_powers - 255);
+  int sum_of_powers = left_mult_rep + right_mult_rep;
+  return Element::from_mult_rep (sum_of_powers);
 }
 
-inline constexpr Element operator + (const Element &lhs, const Element &rhs)
+inline constexpr Element operator + (Element lhs, Element rhs)
 {
   return Element (static_cast<unsigned char> (lhs.m_additive_rep ^ rhs.m_additive_rep));
 }
 
 inline constexpr Element operator / (const Element &lhs, const Element &rhs)
 {
-  if (lhs.m_mult_rep == 255)
+  if (lhs.m_additive_rep == 0)
     return Element ();
 
-  if (rhs.m_mult_rep == 255)
+  if (rhs.m_additive_rep == 0)
     std::terminate (); //Inverse of zero element
 
-  int dif_of_powers = lhs.m_mult_rep - rhs.m_mult_rep;
+  unsigned char left_mult_rep = add_to_mult_rep[lhs.m_additive_rep];
+  unsigned char right_mult_rep = add_to_mult_rep[rhs.m_additive_rep];
+
+  int dif_of_powers = left_mult_rep - right_mult_rep;
 
   if (dif_of_powers < 0)
     return Element::from_mult_rep (255 + dif_of_powers);

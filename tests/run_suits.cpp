@@ -173,8 +173,8 @@ void GF256::run_benchmark_suit ()
   std::vector<Element> my_elements;
   std::vector<uint8_t>  his_elements;
 
-  my_elements.reserve (100);
-  his_elements.reserve (100);
+  my_elements.reserve (10000);
+  his_elements.reserve (10000);
 
   for (int i = 0; i < 1; i++)
     {
@@ -190,8 +190,8 @@ void GF256::run_benchmark_suit ()
   printf ("  Perfoming 10^8 additions\n");
 
   auto begin = clock.now ();
-  for (int i = 0; i < 100; i++)
-    for (int j = 0; j < 100; j++)
+  for (int i = 0; i < 10000; i++)
+    for (int j = 0; j < 10000; j++)
       {
         Element sum = my_elements[i] + my_elements[j];
         doNotOptimizeAway (sum);
@@ -201,8 +201,8 @@ void GF256::run_benchmark_suit ()
   auto my_dif = end - begin;
 
   begin = clock.now ();
-  for (int i = 0; i < 100; i++)
-    for (int j = 0; j < 100; j++)
+  for (int i = 0; i < 10000; i++)
+    for (int j = 0; j < 10000; j++)
       {
         uint8_t sum = gf256_add (his_elements[i], his_elements[j]);
         doNotOptimizeAway (sum);
@@ -218,8 +218,8 @@ void GF256::run_benchmark_suit ()
   printf ("  Perfoming 10^8 multiplications\n");
 
   begin = clock.now ();
-  for (int i = 0; i < 100; i++)
-    for (int j = 0; j < 100; j++)
+  for (int i = 0; i < 10000; i++)
+    for (int j = 0; j < 10000; j++)
       {
         Element prod = my_elements[i] * my_elements[j];
         doNotOptimizeAway (prod);
@@ -230,8 +230,8 @@ void GF256::run_benchmark_suit ()
   my_dif = end - begin;
 
   begin = clock.now ();
-  for (int i = 0; i < 100; i++)
-    for (int j = 0; j < 100; j++)
+  for (int i = 0; i < 10000; i++)
+    for (int j = 0; j < 10000; j++)
       {
         uint8_t prod = gf256_mul (his_elements[i], his_elements[j]);
         doNotOptimizeAway (prod);

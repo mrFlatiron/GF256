@@ -205,14 +205,14 @@ extern int gf256_init_(int version);
 // Math Operations
 
 /// return x + y
-static /*GF256_FORCE_INLINE*/ uint8_t gf256_add(uint8_t x, uint8_t y)
+static GF256_FORCE_INLINE uint8_t gf256_add(uint8_t x, uint8_t y)
 {
     return (uint8_t)(x ^ y);
 }
 
 /// return x * y
 /// For repeated multiplication by a constant, it is faster to put the constant in y.
-static /*GF256_FORCE_INLINE*/ uint8_t gf256_mul(uint8_t x, uint8_t y)
+static GF256_FORCE_INLINE uint8_t gf256_mul(uint8_t x, uint8_t y)
 {
     return GF256Ctx.GF256_MUL_TABLE[((unsigned)y << 8) + x];
 }

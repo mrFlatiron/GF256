@@ -349,7 +349,7 @@ static const uint8_t GF256_GEN_POLY[GF256_GEN_POLY_COUNT] = {
     0xb8, 0xc3, 0xc6, 0xd4, 0xe1, 0xe7, 0xf3, 0xfa
 };
 
-static const int kDefaultPolynomialIndex = 9;
+static const int kDefaultPolynomialIndex = 12;
 
 // Select which polynomial to use
 static void gf256_poly_init(int polynomialIndex)

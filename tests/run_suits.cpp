@@ -162,13 +162,12 @@ bool GF256::run_test_suit ()
 
 void GF256::run_benchmark_suit ()
 {
+  gf256_init ();
+
   printf ("==============================BENCHMARK SUIT==============================\n");
   printf ("Comparing with github.com/catid/gf256 implementation\n");
 
   std::srand (0);
-
-  Element my_root = primitive_root ();
-  uint8_t his_root = static_cast<uint8_t> (2);
 
   std::vector<Element> my_elements;
   std::vector<uint8_t>  his_elements;
@@ -176,12 +175,24 @@ void GF256::run_benchmark_suit ()
   my_elements.reserve (10000);
   his_elements.reserve (10000);
 
-  for (int i = 0; i < 1; i++)
+  std::vector<Element> my_inv_elements;
+  std::vector<uint8_t>  his_inv_elements;
+
+  my_inv_elements.reserve (10000);
+  his_inv_elements.reserve (10000);
+
+  for (int i = 0; i < 10000; i++)
     {
       uint8_t byte = static_cast<uint8_t> (abs (std::rand ()) % 256);
 
       my_elements.emplace_back (byte);
       his_elements.emplace_back (byte);
+
+      if (!byte)
+          byte = 10;
+
+      my_inv_elements.emplace_back (byte);
+      his_inv_elements.emplace_back (byte);
     }
 
   chr::steady_clock clock;
@@ -235,6 +246,59 @@ void GF256::run_benchmark_suit ()
       {
         uint8_t prod = gf256_mul (his_elements[i], his_elements[j]);
         doNotOptimizeAway (prod);
+      }
+
+  end = clock.now ();
+
+  his_dif = end - begin;
+
+  printf ("  GF256 time: %d\n", get_msecs (my_dif));
+  printf ("  gf256-3rd-party time: %d\n", get_msecs (his_dif));
+
+  printf ("SECTION: POWER\n");
+  printf ("  Perfoming 10^8 powers\n");
+
+  begin = clock.now ();
+
+
+  for (int i = 0; i < 10000; i++)
+    for (int j = 0; j < 10000; j++)
+      {
+        Element power = my_elements[i].pow (j);
+        doNotOptimizeAway (power);
+      }
+
+  end = clock.now ();
+
+  my_dif = end - begin;
+
+  printf ("  GF256 time: %d\n", get_msecs (my_dif));
+  printf ("  gf256-3rd-party time: NOT IMPLEMENTED\n");
+
+  printf ("SECTION: INVERSION\n");
+  printf ("  Perfoming 10^8 inversions\n");
+
+  begin = clock.now ();
+
+  for (int i = 0; i < 10000; i++)
+    for (int j = 0; j < 10000; j++)
+      {
+        Element inv = my_inv_elements[j].inv ();
+        doNotOptimizeAway (inv);
+        doNotOptimizeAway (i);
+      }
+
+  end = clock.now ();
+
+  my_dif = end - begin;
+
+  begin = clock.now ();
+  for (int i = 0; i < 10000; i++)
+    for (int j = 0; j < 10000; j++)
+      {
+        uint8_t inv = gf256_inv (his_inv_elements[j]);
+        doNotOptimizeAway (inv);
+        doNotOptimizeAway (i);
       }
 
   end = clock.now ();
